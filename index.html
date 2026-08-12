@@ -288,14 +288,12 @@
                 offset += 12;
                 const encChunk = await selectedFileData.slice(offset, offset + size).arrayBuffer();
                 offset += size;
-
                 const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(iv) }, key, encChunk);
                 const chunkArray = new Uint8Array(dec);
                 decryptedChunks.push(chunkArray);
                 totalDecryptedSize += chunkArray.byteLength;
             }
 
-            // Combine all decrypted Uint8Array chunks into one contiguous Uint8Array
             const fullDecryptedArray = new Uint8Array(totalDecryptedSize);
             let writeOffset = 0;
             for (const chunk of decryptedChunks) {
@@ -322,10 +320,46 @@
             const extension = '.' + originalName.split('.').pop().toLowerCase();
             const mimeType = mimeMap[extension] || 'application/octet-stream';
 
-            // Create Blob from single contiguous array
             const typedBlob = new Blob([fullDecryptedArray], { type: mimeType });
-            downloadBlob(typedBlob, originalName);
-            status.innerText = "File decrypted & downloaded successfully.";
+            const url = URL.createObjectURL(typedBlob);
+
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+            if (imageExtensions.includes(extension)) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.maxWidth = '100%';
+                img.style.borderRadius = '8px';
+                img.style.marginTop = '10px';
+                img.alt = originalName;
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = originalName;
+                downloadLink.textContent = '⬇️ Download Image';
+                downloadLink.style.display = 'block';
+                downloadLink.style.marginTop = '10px';
+                downloadLink.style.padding = '10px';
+                downloadLink.style.background = 'var(--success)';
+                downloadLink.style.color = 'white';
+                downloadLink.style.borderRadius = '8px';
+                downloadLink.style.textDecoration = 'none';
+                downloadLink.style.textAlign = 'center';
+
+                const fileResult = document.getElementById('fileResult');
+                fileResult.innerHTML = '';
+                fileResult.appendChild(img);
+                fileResult.appendChild(downloadLink);
+                status.innerText = "Image decrypted. Preview and download ready.";
+            } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = originalName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                status.innerText = "File decrypted & downloaded successfully.";
+            }
         } catch (e) {
             console.error(e);
             status.innerText = "Decryption failed. Wrong key or corrupted file.";
