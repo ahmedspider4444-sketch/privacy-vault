@@ -132,7 +132,7 @@
             <input type="text" id="fileKey" placeholder="Enter encryption key...">
             <div class="file-zone" onclick="document.getElementById('fileInput').click()">
                 <p>Tap to select a file</p>
-                <p style="font-size:0.7rem; color:var(--text-light);">Supports large files (AES-256)</p>
+                <p style="font-size:0.7rem; color:#64748b;">Supports large files (AES-256)</p>
             </div>
             <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(event)">
             <p id="fileStatus" style="font-size:0.8rem; margin-top:6px;"></p>
@@ -145,7 +145,7 @@
 
         <!-- Secure Handshake Tab (ECDH) -->
         <div id="tab-handshake" class="tab-content">
-            <p style="margin-bottom:12px; color:var(--text-light);">Create a shared key using true Elliptic Curve Diffie-Hellman (ECDH).</p>
+            <p style="margin-bottom:12px; color:#64748b;">Create a shared key using true Elliptic Curve Diffie-Hellman (ECDH).</p>
             <label>Your Public Key (send to peer)</label>
             <textarea id="myPublicKey" rows="2" readonly placeholder="Generate your key pair first..."></textarea>
             <label style="margin-top:8px;">Peer's Public Key (paste here)</label>
@@ -154,7 +154,7 @@
                 <button class="btn-warning" onclick="generateKeyPair()">Generate Key Pair</button>
                 <button class="btn-warning" onclick="deriveSharedKey()">Derive Shared Key</button>
             </div>
-            <p id="handshakeStatus" style="font-size:0.8rem; margin-top:8px; color:var(--text-light);"></p>
+            <p id="handshakeStatus" style="font-size:0.8rem; margin-top:8px; color:#64748b;"></p>
         </div>
     </div>
 </div>
@@ -257,7 +257,8 @@
                 offset += CHUNK_SIZE;
             }
 
-            const blob = new Blob(parts);
+            // تحديد octet-stream لتجنب إضافة امتداد txt تلقائياً في الأندرويد
+            const blob = new Blob(parts, { type: 'application/octet-stream' });
             downloadBlob(blob, selectedFileData.name + ".enc");
             status.innerText = "File encrypted.";
         } catch (e) {
@@ -277,7 +278,6 @@
             const salt = new Uint8Array(await selectedFileData.slice(0, 16).arrayBuffer());
             const key = await deriveKey(password, salt);
             const decryptedChunks = [];
-            let totalDecryptedSize = 0;
             let offset = 16;
 
             while (offset < selectedFileData.size) {
@@ -289,21 +289,13 @@
                 const encChunk = await selectedFileData.slice(offset, offset + size).arrayBuffer();
                 offset += size;
                 const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(iv) }, key, encChunk);
-                const chunkArray = new Uint8Array(dec);
-                decryptedChunks.push(chunkArray);
-                totalDecryptedSize += chunkArray.byteLength;
-            }
-
-            const fullDecryptedArray = new Uint8Array(totalDecryptedSize);
-            let writeOffset = 0;
-            for (const chunk of decryptedChunks) {
-                fullDecryptedArray.set(chunk, writeOffset);
-                writeOffset += chunk.byteLength;
+                decryptedChunks.push(new Uint8Array(dec));
             }
 
             let originalName = selectedFileData.name;
+            if (originalName.endsWith(".txt")) originalName = originalName.slice(0, -4);
             if (originalName.endsWith(".enc")) originalName = originalName.slice(0, -4);
-            else originalName = "decrypted_" + originalName;
+            else if (!originalName.startsWith("decrypted_")) originalName = "decrypted_" + originalName;
 
             const mimeMap = {
                 '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
@@ -320,44 +312,43 @@
             const extension = '.' + originalName.split('.').pop().toLowerCase();
             const mimeType = mimeMap[extension] || 'application/octet-stream';
 
-            const typedBlob = new Blob([fullDecryptedArray], { type: mimeType });
+            // تحسين استهلاك الـ RAM بتمرير الأجزاء مباشرة إلى الـ Blob
+            const typedBlob = new Blob(decryptedChunks, { type: mimeType });
             const url = URL.createObjectURL(typedBlob);
 
             const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+            const videoExtensions = ['.mp4', '.webm', '.mov', '.ogg', '.m4v'];
+
+            const fileResult = document.getElementById('fileResult');
+            fileResult.innerHTML = '';
+
             if (imageExtensions.includes(extension)) {
                 const img = document.createElement('img');
                 img.src = url;
                 img.style.maxWidth = '100%';
                 img.style.borderRadius = '8px';
                 img.style.marginTop = '10px';
-                img.alt = originalName;
 
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = originalName;
-                downloadLink.textContent = '⬇️ Download Image';
-                downloadLink.style.display = 'block';
-                downloadLink.style.marginTop = '10px';
-                downloadLink.style.padding = '10px';
-                downloadLink.style.background = 'var(--success)';
-                downloadLink.style.color = 'white';
-                downloadLink.style.borderRadius = '8px';
-                downloadLink.style.textDecoration = 'none';
-                downloadLink.style.textAlign = 'center';
-
-                const fileResult = document.getElementById('fileResult');
-                fileResult.innerHTML = '';
+                const downloadLink = createDownloadButton(url, originalName, "⬇️ Download Decrypted Image");
                 fileResult.appendChild(img);
                 fileResult.appendChild(downloadLink);
-                status.innerText = "Image decrypted. Preview and download ready.";
+                status.innerText = "Decryption successful! Image ready.";
+
+            } else if (videoExtensions.includes(extension)) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.controls = true;
+                video.style.maxWidth = '100%';
+                video.style.borderRadius = '8px';
+                video.style.marginTop = '10px';
+
+                const downloadLink = createDownloadButton(url, originalName, "⬇️ Download Decrypted Video");
+                fileResult.appendChild(video);
+                fileResult.appendChild(downloadLink);
+                status.innerText = "Decryption successful! Play or download your video.";
+
             } else {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = originalName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                downloadBlob(typedBlob, originalName);
                 status.innerText = "File decrypted & downloaded successfully.";
             }
         } catch (e) {
@@ -366,15 +357,32 @@
         }
     }
 
+    function createDownloadButton(url, name, label) {
+        const btn = document.createElement('a');
+        btn.href = url;
+        btn.download = name;
+        btn.textContent = label;
+        btn.style.display = 'block';
+        btn.style.marginTop = '10px';
+        btn.style.padding = '10px';
+        btn.style.background = 'var(--success)';
+        btn.style.color = 'white';
+        btn.style.borderRadius = '8px';
+        btn.style.textDecoration = 'none';
+        btn.style.textAlign = 'center';
+        return btn;
+    }
+
     function downloadBlob(blob, fileName) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = fileName;
+        a.rel = "noopener";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
 
     async function generateKeyPair() {
@@ -415,9 +423,13 @@
             const sharedKeyHex = Array.from(new Uint8Array(sharedSecret))
                 .map(b => b.toString(16).padStart(2, '0'))
                 .join('');
+
+            // وضع المفتاح الناتج في خانة النص والملفات معاً
             document.getElementById('keyInput').value = sharedKeyHex;
-            document.getElementById('handshakeStatus').innerText = "Shared key derived and moved to Text tab. You can now use it for encryption.";
-            alert("Secure handshake complete. The shared key has been placed in the Text tab.");
+            document.getElementById('fileKey').value = sharedKeyHex;
+
+            document.getElementById('handshakeStatus').innerText = "Shared key derived and applied to Text and Files tabs.";
+            alert("Secure handshake complete. The shared key has been placed in Text and Files tabs.");
         } catch (e) {
             console.error(e);
             alert("Failed to derive shared key. Check the peer's public key.");
