@@ -6,6 +6,7 @@
     <title>PrivacyVault - Offline AES-256 Encryption</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Crect x='20' y='45' width='60' height='40' rx='8' fill='white'/%3E%3Crect x='45' y='25' width='10' height='25' fill='white'/%3E%3C/svg%3E">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlByaXZhY3lWYXVsdCIsCiAgInNob3J0X25hbWUiOiAiVmF1bHQiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIiMwZjE3MmEiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgcng9JzIwJyBmaWxsPSclMjMxZTI5M2InLyUzRSUzQ3RleHQgeD0nNTAnIHk9JzU1JyBmb250LXNpemU9JzQwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPSd3aGl0ZScgZm9udC1mYW1pbHk9J0FyaWFsJz7wn5SOPC90ZXh0JTNFJTNDL3N2ZyUzRSIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0">
     <style>
         :root {
@@ -88,7 +89,7 @@
         .btn-warning { background: var(--warning); color: #1e293b; }
         .btn-copy { background: #64748b; }
         .btn-gen { background: #8b5cf6; font-size: 0.8rem; padding: 6px 12px; min-width: auto; flex: 0; }
-        .result-box { background: #f1f5f9; border: 2px dashed var(--border); padding: 14px; border-radius: 10px; margin-top: 12px; font-family: monospace; direction: ltr; text-align: left; }
+        .result-box { background: #f1f5f9; border: 2px dashed var(--border); padding: 14px; border-radius: 10px; margin-top: 12px; font-family: monospace; direction: ltr; text-align: left; word-break: break-all; overflow-wrap: break-word; }
         .file-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; background: #fafbfc; }
     </style>
 </head>
@@ -156,7 +157,7 @@
 
 <script>
     // ==================== CONFIGURATION ====================
-    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
+    const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
     let selectedFileData = null, selectedFileName = "";
     let localKeyPair = null;
