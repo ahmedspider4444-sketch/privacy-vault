@@ -28,7 +28,7 @@
             direction: ltr;
         }
         #mainApp { display: block; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 24px; } /* added padding-bottom */
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 24px; }
         .app-header { background: linear-gradient(135deg, var(--primary), #1e293b); color: white; padding: 20px 24px; text-align: center; }
         .app-header h1 { font-size: 1.4rem; margin-bottom: 4px; }
         .offline-badge {
@@ -44,13 +44,37 @@
             margin-top: 8px;
             letter-spacing: 0.5px;
         }
-        .offline-badge::before {
-            content: "🛡️";
-            font-size: 0.9rem;
+        .offline-badge::before { content: "🛡️"; font-size: 0.9rem; }
+
+        /* Modern Segmented Control Tabs */
+        .tabs {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            margin: 16px 20px 0 20px;
+            border-radius: 12px;
+            gap: 4px;
         }
-        .tabs { display: flex; background: #f1f5f9; border-bottom: 2px solid var(--border); overflow-x: auto; }
-        .tab-btn { flex: 1; padding: 14px 8px; background: transparent; border: none; font-size: 0.75rem; font-weight: 600; color: #334155; cursor: pointer; white-space: nowrap; } /* improved contrast */
-        .tab-btn.active { color: var(--accent); background: white; border-bottom: 2px solid var(--accent); margin-bottom: -2px; }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: transparent;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            color: #0f172a;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            border-bottom: none;
+        }
+
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
         label { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; display: block; }
@@ -135,7 +159,7 @@
     const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 
     let selectedFileData = null, selectedFileName = "";
-    let localKeyPair = null; // stores { publicKey, privateKey } for ECDH
+    let localKeyPair = null;
 
     // ==================== AES-256 UTILITIES ====================
     async function deriveKey(password, salt) {
@@ -199,7 +223,7 @@
     }
 
     // ==================== FILE ENCRYPTION / DECRYPTION (CHUNKED AES-256) ====================
-    const CHUNK_SIZE = 2 * 1024 * 1024; // 2 MB
+    const CHUNK_SIZE = 2 * 1024 * 1024;
 
     function handleFileSelect(e) {
         const file = e.target.files[0];
@@ -353,16 +377,14 @@
     function copyResult() {
         const t = document.getElementById('resultOutput').innerText;
         if (!t || t === "Result will appear here...") return;
-        
+
         if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(t).then(() => alert("Copied!")).catch(() => {
-                fallbackCopy(t);
-            });
+            navigator.clipboard.writeText(t).then(() => alert("Copied!")).catch(() => fallbackCopy(t));
         } else {
             fallbackCopy(t);
         }
     }
-    
+
     function fallbackCopy(text) {
         const textarea = document.createElement("textarea");
         textarea.value = text;
@@ -377,7 +399,7 @@
     function switchTab(name, btnEvt) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
+
         document.getElementById('tab-' + name).classList.add('active');
         if (btnEvt) btnEvt.classList.add('active');
     }
