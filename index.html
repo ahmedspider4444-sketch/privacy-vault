@@ -3,472 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>PrivacyVault - Offline AES-256 Encryption</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Crect x='20' y='45' width='60' height='40' rx='8' fill='white'/%3E%3Crect x='45' y='25' width='10' height='25' fill='white'/%3E%3C/svg%3E">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlByaXZhY3lWYXVsdCIsCiAgInNob3J0X25hbWUiOiAiVmF1bHQiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIiMwZjE3MmEiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgcng9JzIwJyBmaWxsPSclMjMxZTI5M2InLyUzRSUzQ3RleHQgeD0nNTAnIHk9JzU1JyBmb250LXNpemU9JzQwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPSd3aGl0ZScgZm9udC1mYW1pbHk9J0FyaWFsJz7wn5SOPC90ZXh0JTNFJTNDL3N2ZyUzRSIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0">
+    <title>PrivacyVault - Offline AES-256</title>
     <style>
         :root {
-            --primary: #0f172a;
-            --accent: #3b82f6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --bg: #f8fafc;
-            --border: #e2e8f0;
-            --radius: 16px;
+            --primary: #0f172a; --accent: #3b82f6; --success: #10b981;
+            --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; --radius: 16px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: var(--bg);
-            color: #1e293b;
-            min-height: 100vh;
-            padding: 16px;
-            direction: ltr;
-        }
-        #mainApp { display: block; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: #1e293b; min-height: 100vh; padding: 16px; }
         .container { max-width: 600px; margin: 0 auto; background: white; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 24px; }
         .app-header { background: linear-gradient(135deg, var(--primary), #1e293b); color: white; padding: 20px 24px; text-align: center; }
         .app-header h1 { font-size: 1.4rem; margin-bottom: 4px; }
-        .offline-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.15);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-top: 8px;
-            letter-spacing: 0.5px;
-        }
-        .offline-badge::before { content: "🛡️"; font-size: 0.9rem; }
-
-        .tabs {
-            display: flex;
-            background: #e2e8f0;
-            padding: 4px;
-            margin: 16px 20px 0 20px;
-            border-radius: 12px;
-            gap: 4px;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 10px 8px;
-            background: transparent;
-            border: none;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #64748b;
-            cursor: pointer;
-            white-space: nowrap;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-        .tab-btn.active {
-            color: #0f172a;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-            border-bottom: none;
-        }
-
+        .offline-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; margin-top: 8px; }
+        .tabs { display: flex; background: #e2e8f0; padding: 4px; margin: 16px 20px 0 20px; border-radius: 12px; gap: 4px; }
+        .tab-btn { flex: 1; padding: 10px 8px; background: transparent; border: none; font-size: 0.8rem; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 8px; }
+        .tab-btn.active { color: #0f172a; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
         label { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; display: block; }
-        textarea, input[type="text"], input[type="file"] { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; background: #fafbfc; font-family: inherit; }
+        textarea, input[type="text"] { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; background: #fafbfc; }
         textarea { height: 100px; resize: vertical; }
         .btn-group { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-        button { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; color: white; flex: 1; min-width: 80px; }
-        button:active { transform: scale(0.97); }
+        button { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; color: white; flex: 1; }
         .btn-enc { background: var(--accent); }
         .btn-dec { background: var(--success); }
         .btn-warning { background: var(--warning); color: #1e293b; }
-        .btn-copy { background: #64748b; }
-        .btn-gen { background: #8b5cf6; font-size: 0.8rem; padding: 6px 12px; min-width: auto; flex: 0; }
-        .result-box { background: #f1f5f9; border: 2px dashed var(--border); padding: 14px; border-radius: 10px; margin-top: 12px; font-family: monospace; direction: ltr; text-align: left; word-break: break-all; overflow-wrap: break-word; }
+        .result-box { background: #f1f5f9; border: 2px dashed var(--border); padding: 14px; border-radius: 10px; margin-top: 12px; font-family: monospace; word-break: break-all; }
         .file-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; background: #fafbfc; }
-        #fileStatus {
-            text-align: center;
-            word-break: break-all;
-            direction: ltr;
-        }
     </style>
 </head>
 <body>
 
-<div id="mainApp">
-    <div class="container">
-        <div class="app-header">
-            <h1>PrivacyVault</h1>
-            <p style="opacity:0.9; margin-bottom:4px;">Military-grade AES-256 Encryption</p>
-            <div class="offline-badge">Data never leaves your device</div>
-        </div>
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('text', this)">Text</button>
-            <button class="tab-btn" onclick="switchTab('file', this)">Files</button>
-            <button class="tab-btn" onclick="switchTab('handshake', this)">Handshake</button>
-        </div>
+<div class="container">
+    <div class="app-header">
+        <h1>PrivacyVault</h1>
+        <div class="offline-badge">Data never leaves your device</div>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('text', this)">Text</button>
+        <button class="tab-btn" onclick="switchTab('file', this)">Files</button>
+        <button class="tab-btn" onclick="switchTab('handshake', this)">Handshake</button>
+    </div>
 
-        <!-- Text Encryption Tab -->
-        <div id="tab-text" class="tab-content active">
-            <label>Encryption Key <button class="btn-gen" onclick="generatePassword('keyInput')">Generate</button></label>
-            <input type="text" id="keyInput" placeholder="Enter encryption key...">
-            <label style="margin-top:12px;">Text</label>
-            <textarea id="textInput" placeholder="Type text here..."></textarea>
-            <div class="btn-group">
-                <button class="btn-enc" onclick="processText(true)">Encrypt</button>
-                <button class="btn-dec" onclick="processText(false)">Decrypt</button>
-            </div>
-            <div class="result-box" id="resultOutput">Result will appear here...</div>
-            <button class="btn-copy" onclick="copyResult()" style="margin-top:12px; width:100%;">Copy</button>
+    <!-- Text Tab -->
+    <div id="tab-text" class="tab-content active">
+        <label>Encryption Key</label>
+        <input type="text" id="keyInput" placeholder="Enter key...">
+        <label style="margin-top:12px;">Text</label>
+        <textarea id="textInput" placeholder="Type here..."></textarea>
+        <div class="btn-group">
+            <button class="btn-enc" onclick="processText(true)">Encrypt</button>
+            <button class="btn-dec" onclick="processText(false)">Decrypt</button>
         </div>
+        <div class="result-box" id="resultOutput">Result...</div>
+    </div>
 
-        <!-- File Encryption Tab -->
-        <div id="tab-file" class="tab-content">
-            <label>Encryption Key <button class="btn-gen" onclick="generatePassword('fileKey')">Generate</button></label>
-            <input type="text" id="fileKey" placeholder="Enter encryption key...">
-            <div class="file-zone" onclick="document.getElementById('fileInput').click()">
-                <p>Tap to select a file</p>
-                <p style="font-size:0.7rem; color:#64748b;">Supports large files (AES-256)</p>
-            </div>
-            <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(event)">
-            <p id="fileStatus" style="font-size:0.8rem; margin-top:6px;"></p>
-            <div class="btn-group">
-                <button class="btn-enc" onclick="encryptFile()">Encrypt</button>
-                <button class="btn-dec" onclick="decryptFile()">Decrypt</button>
-            </div>
-            <div class="result-box" id="fileResult">Output file...</div>
+    <!-- File Tab -->
+    <div id="tab-file" class="tab-content">
+        <label>Encryption Key</label>
+        <input type="text" id="fileKey" placeholder="Enter key...">
+        <div class="file-zone" onclick="document.getElementById('fileInput').click()">
+            <p>Tap to select a file</p>
         </div>
+        <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(event)">
+        <p id="fileStatus" style="font-size:0.8rem; margin-top:6px; text-align:center;"></p>
+        <div class="btn-group">
+            <button class="btn-enc" onclick="encryptFile()">Encrypt</button>
+            <button class="btn-dec" onclick="decryptFile()">Decrypt</button>
+        </div>
+        <div class="result-box" id="fileResult">Output...</div>
+    </div>
 
-        <!-- Secure Handshake Tab (ECDH) -->
-        <div id="tab-handshake" class="tab-content">
-            <p style="margin-bottom:12px; color:#64748b;">Create a shared key using true Elliptic Curve Diffie-Hellman (ECDH).</p>
-            <label>Your Public Key (send to peer)</label>
-            <textarea id="myPublicKey" rows="2" readonly placeholder="Generate your key pair first..."></textarea>
-            <label style="margin-top:8px;">Peer's Public Key (paste here)</label>
-            <textarea id="peerPublicKey" rows="2" placeholder="Paste the public key from your peer..."></textarea>
-            <div class="btn-group">
-                <button class="btn-warning" onclick="generateKeyPair()">Generate Key Pair</button>
-                <button class="btn-warning" onclick="deriveSharedKey()">Derive Shared Key</button>
-            </div>
-            <p id="handshakeStatus" style="font-size:0.8rem; margin-top:8px; color:#64748b;"></p>
+    <!-- Handshake Tab -->
+    <div id="tab-handshake" class="tab-content">
+        <label>Your Public Key</label>
+        <textarea id="myPublicKey" readonly></textarea>
+        <label style="margin-top:8px;">Peer's Public Key</label>
+        <textarea id="peerPublicKey"></textarea>
+        <div class="btn-group">
+            <button class="btn-warning" onclick="generateKeyPair()">Generate</button>
+            <button class="btn-warning" onclick="deriveSharedKey()">Derive</button>
         </div>
+        <p id="handshakeStatus" style="font-size:0.8rem; margin-top:8px;"></p>
     </div>
 </div>
 
 <script>
     const MAX_FILE_SIZE = 500 * 1024 * 1024;
-    let selectedFileData = null, selectedFileName = "";
-    let localKeyPair = null;
+    let selectedFileData = null, localKeyPair = null;
+    const CHUNK_SIZE = 2 * 1024 * 1024;
 
     async function deriveKey(password, salt) {
         const enc = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
-        return crypto.subtle.deriveKey(
-            { name: "PBKDF2", salt: salt, iterations: 200000, hash: "SHA-256" },
-            keyMaterial,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["encrypt", "decrypt"]
-        );
+        return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 200000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
     }
 
     function generateRandomSalt() { return crypto.getRandomValues(new Uint8Array(16)); }
-
-    function arrayBufferToBase64(buffer) {
-        let binary = '';
-        const bytes = new Uint8Array(buffer);
-        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-        return btoa(binary);
-    }
-
-    function base64ToArrayBuffer(base64) {
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        return bytes.buffer;
-    }
+    function arrayBufferToBase64(buffer) { return btoa(String.fromCharCode(...new Uint8Array(buffer))); }
+    function base64ToArrayBuffer(base64) { return Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer; }
 
     async function processText(isEncrypt) {
         const text = document.getElementById('textInput').value;
         const password = document.getElementById('keyInput').value.trim();
         const out = document.getElementById('resultOutput');
         if (!password) { alert("Enter a key."); return; }
-
         try {
             if (isEncrypt) {
-                if (text.length === 0) { alert("Type something."); return; }
                 const salt = generateRandomSalt();
                 const key = await deriveKey(password, salt);
                 const iv = crypto.getRandomValues(new Uint8Array(12));
-                const enc = new TextEncoder().encode(text);
-                const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc);
+                const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text));
                 out.innerText = arrayBufferToBase64(salt) + ":" + arrayBufferToBase64(iv) + ":" + arrayBufferToBase64(cipher);
             } else {
                 const parts = text.split(":");
-                if (parts.length !== 3) { alert("Invalid encrypted text."); return; }
                 const salt = new Uint8Array(base64ToArrayBuffer(parts[0]));
                 const iv = new Uint8Array(base64ToArrayBuffer(parts[1]));
-                const cipher = new Uint8Array(base64ToArrayBuffer(parts[2]));
                 const key = await deriveKey(password, salt);
-                const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
+                const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, base64ToArrayBuffer(parts[2]));
                 out.innerText = new TextDecoder().decode(dec);
             }
-        } catch (e) {
-            console.error(e);
-            alert("Operation failed. Check your key or data.");
-        }
+        } catch (e) { alert("Failed."); }
     }
-
-    const CHUNK_SIZE = 2 * 1024 * 1024;
 
     function handleFileSelect(e) {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > MAX_FILE_SIZE) { alert("File too large (max 500 MB)."); e.target.value = ""; return; }
-        selectedFileName = file.name;
         selectedFileData = file;
-        document.getElementById('fileStatus').innerText = file.name + " (" + (file.size/1024/1024).toFixed(1) + " MB)";
+        document.getElementById('fileStatus').innerText = file.name;
     }
 
     async function encryptFile() {
-        if (!selectedFileData) { alert("Select a file."); return; }
+        if (!selectedFileData) return;
         const password = document.getElementById('fileKey').value.trim();
-        if (!password) { alert("Enter a key."); return; }
         const status = document.getElementById('fileResult');
         status.innerText = "Encrypting...";
-
         try {
             const salt = generateRandomSalt();
             const key = await deriveKey(password, salt);
             const parts = [salt];
             let offset = 0;
-
             while (offset < selectedFileData.size) {
                 const chunk = await selectedFileData.slice(offset, offset + CHUNK_SIZE).arrayBuffer();
                 const iv = crypto.getRandomValues(new Uint8Array(12));
                 const enc = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, chunk);
                 const encArray = new Uint8Array(enc);
-                const sizeBytes = new Uint8Array(new Uint32Array([encArray.byteLength]).buffer);
-                parts.push(sizeBytes, iv, encArray);
+                parts.push(new Uint8Array(new Uint32Array([encArray.byteLength]).buffer), iv, encArray);
                 offset += CHUNK_SIZE;
             }
-
-            // تحديد octet-stream لتجنب إضافة امتداد txt تلقائياً في الأندرويد
-            const blob = new Blob(parts, { type: 'application/octet-stream' });
-            downloadBlob(blob, selectedFileData.name + ".enc");
-            status.innerText = "File encrypted.";
-        } catch (e) {
-            console.error(e);
-            status.innerText = "Encryption failed.";
-        }
+            downloadBlob(new Blob(parts, { type: 'application/octet-stream' }), selectedFileData.name + ".enc");
+            status.innerText = "Encrypted.";
+        } catch (e) { status.innerText = "Failed."; }
     }
 
     async function decryptFile() {
-        if (!selectedFileData) { alert("Select a file."); return; }
+        if (!selectedFileData) return;
         const password = document.getElementById('fileKey').value.trim();
-        if (!password) { alert("Enter a key."); return; }
         const status = document.getElementById('fileResult');
-        status.innerText = "Decrypting...";
-
+        status.innerHTML = "Decrypting...";
         try {
             const salt = new Uint8Array(await selectedFileData.slice(0, 16).arrayBuffer());
             const key = await deriveKey(password, salt);
-            const decryptedChunks = [];
+            const chunks = [];
             let offset = 16;
-
             while (offset < selectedFileData.size) {
-                const sizeBytes = await selectedFileData.slice(offset, offset + 4).arrayBuffer();
-                const size = new Uint32Array(sizeBytes)[0];
+                const size = new Uint32Array(await selectedFileData.slice(offset, offset + 4).arrayBuffer())[0];
                 offset += 4;
-                const iv = await selectedFileData.slice(offset, offset + 12).arrayBuffer();
+                const iv = new Uint8Array(await selectedFileData.slice(offset, offset + 12).arrayBuffer());
                 offset += 12;
-                const encChunk = await selectedFileData.slice(offset, offset + size).arrayBuffer();
+                const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, await selectedFileData.slice(offset, offset + size).arrayBuffer());
+                chunks.push(new Uint8Array(dec));
                 offset += size;
-                const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(iv) }, key, encChunk);
-                decryptedChunks.push(new Uint8Array(dec));
             }
-
-            let originalName = selectedFileData.name;
-            if (originalName.endsWith(".txt")) originalName = originalName.slice(0, -4);
-            if (originalName.endsWith(".enc")) originalName = originalName.slice(0, -4);
-            else if (!originalName.startsWith("decrypted_")) originalName = "decrypted_" + originalName;
-
-            const mimeMap = {
-                '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
-                '.gif': 'image/gif', '.bmp': 'image/bmp', '.webp': 'image/webp',
-                '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.webm': 'video/webm',
-                '.mov': 'video/quicktime', '.avi': 'video/x-msvideo', '.m4v': 'video/x-m4v',
-                '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.pdf': 'application/pdf',
-                '.txt': 'text/plain', '.html': 'text/html', '.css': 'text/css',
-                '.js': 'application/javascript', '.json': 'application/json',
-                '.zip': 'application/zip', '.rar': 'application/vnd.rar',
-                '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                '.xls': 'application/vnd.ms-excel', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            };
-            const extension = '.' + originalName.split('.').pop().toLowerCase();
-            const mimeType = mimeMap[extension] || 'application/octet-stream';
-
-            // تحسين استهلاك الـ RAM بتمرير الأجزاء مباشرة إلى الـ Blob
-            const typedBlob = new Blob(decryptedChunks, { type: mimeType });
-            const url = URL.createObjectURL(typedBlob);
-
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
-            const videoExtensions = ['.mp4', '.webm', '.mov', '.ogg', '.m4v'];
-
-            const fileResult = document.getElementById('fileResult');
-            fileResult.innerHTML = '';
-
-            if (imageExtensions.includes(extension)) {
-                const img = document.createElement('img');
-                img.src = url;
-                img.style.maxWidth = '100%';
-                img.style.borderRadius = '8px';
-                img.style.marginTop = '10px';
-
-                const downloadLink = createDownloadButton(url, originalName, "⬇️ Download Decrypted Image");
-                fileResult.appendChild(img);
-                fileResult.appendChild(downloadLink);
-                status.innerText = "Decryption successful! Image ready.";
-
-            } else if (videoExtensions.includes(extension)) {
-                const video = document.createElement('video');
-                video.src = url;
-                video.controls = true;
-                video.style.maxWidth = '100%';
-                video.style.borderRadius = '8px';
-                video.style.marginTop = '10px';
-
-                const downloadLink = createDownloadButton(url, originalName, "⬇️ Download Decrypted Video");
-                fileResult.appendChild(video);
-                fileResult.appendChild(downloadLink);
-                status.innerText = "Decryption successful! Play or download your video.";
-
-            } else {
-                downloadBlob(typedBlob, originalName);
-                status.innerText = "File decrypted & downloaded successfully.";
+            let name = selectedFileData.name;
+            while (name.endsWith(".txt") || name.endsWith(".enc")) name = name.slice(0, name.lastIndexOf('.'));
+            const ext = name.includes('.') ? name.slice(name.lastIndexOf('.')) : '';
+            const blob = new Blob(chunks, { type: ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : ext === '.mp4' ? 'video/mp4' : 'application/octet-stream' });
+            
+            status.innerHTML = '';
+            const url = URL.createObjectURL(blob);
+            if (ext.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+                const img = document.createElement('img'); img.src = url; img.style.width = '100%';
+                status.appendChild(img);
+            } else if (ext.match(/\.(mp4|webm|mov|m4v)$/i)) {
+                const vid = document.createElement('video'); vid.src = url; vid.controls = true; vid.style.width = '100%';
+                status.appendChild(vid);
             }
-        } catch (e) {
-            console.error(e);
-            status.innerText = "Decryption failed. Wrong key or corrupted file.";
-        }
+            const link = document.createElement('a'); link.href = url; link.download = name; link.innerText = "Download " + name; link.style.display = 'block'; link.style.marginTop = '10px';
+            status.appendChild(link);
+        } catch (e) { status.innerText = "Decryption failed."; }
     }
 
-    function createDownloadButton(url, name, label) {
-        const btn = document.createElement('a');
-        btn.href = url;
-        btn.download = name;
-        btn.textContent = label;
-        btn.style.display = 'block';
-        btn.style.marginTop = '10px';
-        btn.style.padding = '10px';
-        btn.style.background = 'var(--success)';
-        btn.style.color = 'white';
-        btn.style.borderRadius = '8px';
-        btn.style.textDecoration = 'none';
-        btn.style.textAlign = 'center';
-        return btn;
-    }
-
-    function downloadBlob(blob, fileName) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    function downloadBlob(blob, name) {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
     async function generateKeyPair() {
-        try {
-            localKeyPair = await crypto.subtle.generateKey(
-                { name: "ECDH", namedCurve: "P-256" },
-                true,
-                ["deriveKey", "deriveBits"]
-            );
-            const publicKeyRaw = await crypto.subtle.exportKey("spki", localKeyPair.publicKey);
-            const publicKeyBase64 = arrayBufferToBase64(publicKeyRaw);
-            document.getElementById('myPublicKey').value = publicKeyBase64;
-            document.getElementById('handshakeStatus').innerText = "Key pair generated. Send your public key to your peer.";
-        } catch (e) {
-            console.error(e);
-            alert("Failed to generate key pair. Your browser may not support Web Crypto.");
-        }
+        localKeyPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey", "deriveBits"]);
+        document.getElementById('myPublicKey').value = arrayBufferToBase64(await crypto.subtle.exportKey("spki", localKeyPair.publicKey));
     }
 
     async function deriveSharedKey() {
-        if (!localKeyPair) { alert("Generate your key pair first."); return; }
-        const peerPublicKeyBase64 = document.getElementById('peerPublicKey').value.trim();
-        if (!peerPublicKeyBase64) { alert("Paste the peer's public key."); return; }
-        try {
-            const peerPublicKeyBuffer = base64ToArrayBuffer(peerPublicKeyBase64);
-            const peerPublicKey = await crypto.subtle.importKey(
-                "spki",
-                peerPublicKeyBuffer,
-                { name: "ECDH", namedCurve: "P-256" },
-                false,
-                []
-            );
-            const sharedSecret = await crypto.subtle.deriveBits(
-                { name: "ECDH", public: peerPublicKey },
-                localKeyPair.privateKey,
-                256
-            );
-            const sharedKeyHex = Array.from(new Uint8Array(sharedSecret))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
-
-            // وضع المفتاح الناتج في خانة النص والملفات معاً
-            document.getElementById('keyInput').value = sharedKeyHex;
-            document.getElementById('fileKey').value = sharedKeyHex;
-
-            document.getElementById('handshakeStatus').innerText = "Shared key derived and applied to Text and Files tabs.";
-            alert("Secure handshake complete. The shared key has been placed in Text and Files tabs.");
-        } catch (e) {
-            console.error(e);
-            alert("Failed to derive shared key. Check the peer's public key.");
-        }
+        const peer = await crypto.subtle.importKey("spki", base64ToArrayBuffer(document.getElementById('peerPublicKey').value), { name: "ECDH", namedCurve: "P-256" }, false, []);
+        const secret = await crypto.subtle.deriveBits({ name: "ECDH", public: peer }, localKeyPair.privateKey, 256);
+        const hex = Array.from(new Uint8Array(secret)).map(b => b.toString(16).padStart(2, '0')).join('');
+        document.getElementById('keyInput').value = document.getElementById('fileKey').value = hex;
+        alert("Shared key set!");
     }
 
-    function generatePassword(inputId) {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-        let p = ""; for (let i = 0; i < 16; i++) p += chars[Math.floor(Math.random() * chars.length)];
-        document.getElementById(inputId).value = p;
-    }
-
-    function copyResult() {
-        const t = document.getElementById('resultOutput').innerText;
-        if (!t || t === "Result will appear here...") return;
-
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(t).then(() => alert("Copied!")).catch(() => fallbackCopy(t));
-        } else {
-            fallbackCopy(t);
-        }
-    }
-
-    function fallbackCopy(text) {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-        alert("Copied!");
-    }
-
-    function switchTab(name, btnEvt) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    function switchTab(name, btn) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + name).classList.add('active');
-        if (btnEvt) btnEvt.classList.add('active');
+        btn.classList.add('active');
     }
 </script>
 </body>
