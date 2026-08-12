@@ -47,7 +47,6 @@
         }
         .offline-badge::before { content: "🛡️"; font-size: 0.9rem; }
 
-        /* Modern Segmented Control Tabs */
         .tabs {
             display: flex;
             background: #e2e8f0;
@@ -161,13 +160,10 @@
 </div>
 
 <script>
-    // ==================== CONFIGURATION ====================
     const MAX_FILE_SIZE = 500 * 1024 * 1024;
-
     let selectedFileData = null, selectedFileName = "";
     let localKeyPair = null;
 
-    // ==================== AES-256 UTILITIES ====================
     async function deriveKey(password, salt) {
         const enc = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
@@ -196,7 +192,6 @@
         return bytes.buffer;
     }
 
-    // ==================== TEXT ENCRYPTION / DECRYPTION ====================
     async function processText(isEncrypt) {
         const text = document.getElementById('textInput').value;
         const password = document.getElementById('keyInput').value.trim();
@@ -228,7 +223,6 @@
         }
     }
 
-    // ==================== FILE ENCRYPTION / DECRYPTION (CHUNKED AES-256) ====================
     const CHUNK_SIZE = 2 * 1024 * 1024;
 
     function handleFileSelect(e) {
@@ -282,7 +276,8 @@
         try {
             const salt = new Uint8Array(await selectedFileData.slice(0, 16).arrayBuffer());
             const key = await deriveKey(password, salt);
-            const parts = [];
+            const decryptedChunks = [];
+            let totalDecryptedSize = 0;
             let offset = 16;
 
             while (offset < selectedFileData.size) {
@@ -293,15 +288,25 @@
                 offset += 12;
                 const encChunk = await selectedFileData.slice(offset, offset + size).arrayBuffer();
                 offset += size;
+
                 const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(iv) }, key, encChunk);
-                parts.push(new Uint8Array(dec));
+                const chunkArray = new Uint8Array(dec);
+                decryptedChunks.push(chunkArray);
+                totalDecryptedSize += chunkArray.byteLength;
+            }
+
+            // Combine all decrypted Uint8Array chunks into one contiguous Uint8Array
+            const fullDecryptedArray = new Uint8Array(totalDecryptedSize);
+            let writeOffset = 0;
+            for (const chunk of decryptedChunks) {
+                fullDecryptedArray.set(chunk, writeOffset);
+                writeOffset += chunk.byteLength;
             }
 
             let originalName = selectedFileData.name;
             if (originalName.endsWith(".enc")) originalName = originalName.slice(0, -4);
             else originalName = "decrypted_" + originalName;
 
-            // Determine MIME type based on extension
             const mimeMap = {
                 '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
                 '.gif': 'image/gif', '.bmp': 'image/bmp', '.webp': 'image/webp',
@@ -317,18 +322,10 @@
             const extension = '.' + originalName.split('.').pop().toLowerCase();
             const mimeType = mimeMap[extension] || 'application/octet-stream';
 
-            // If it's an image, preview it; otherwise download with proper MIME type
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
-            if (imageExtensions.some(ext => originalName.toLowerCase().endsWith(ext))) {
-                const typedBlob = new Blob(parts, { type: mimeType });
-                const url = URL.createObjectURL(typedBlob);
-                window.open(url, '_blank');
-                status.innerText = "Image previewed.";
-            } else {
-                const typedBlob = new Blob(parts, { type: mimeType });
-                downloadBlob(typedBlob, originalName);
-                status.innerText = "File decrypted.";
-            }
+            // Create Blob from single contiguous array
+            const typedBlob = new Blob([fullDecryptedArray], { type: mimeType });
+            downloadBlob(typedBlob, originalName);
+            status.innerText = "File decrypted & downloaded successfully.";
         } catch (e) {
             console.error(e);
             status.innerText = "Decryption failed. Wrong key or corrupted file.";
@@ -338,12 +335,14 @@
     function downloadBlob(blob, fileName) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = fileName;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    // ==================== SECURE HANDSHAKE (TRUE ECDH) ====================
     async function generateKeyPair() {
         try {
             localKeyPair = await crypto.subtle.generateKey(
@@ -391,7 +390,6 @@
         }
     }
 
-    // ==================== UI HELPERS ====================
     function generatePassword(inputId) {
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
         let p = ""; for (let i = 0; i < 16; i++) p += chars[Math.floor(Math.random() * chars.length)];
@@ -419,7 +417,6 @@
         alert("Copied!");
     }
 
-    // ==================== TAB SWITCHING ====================
     function switchTab(name, btnEvt) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
