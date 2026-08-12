@@ -28,11 +28,28 @@
             direction: ltr;
         }
         #mainApp { display: block; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 24px; } /* added padding-bottom */
         .app-header { background: linear-gradient(135deg, var(--primary), #1e293b); color: white; padding: 20px 24px; text-align: center; }
         .app-header h1 { font-size: 1.4rem; margin-bottom: 4px; }
+        .offline-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+        .offline-badge::before {
+            content: "🛡️";
+            font-size: 0.9rem;
+        }
         .tabs { display: flex; background: #f1f5f9; border-bottom: 2px solid var(--border); overflow-x: auto; }
-        .tab-btn { flex: 1; padding: 14px 8px; background: transparent; border: none; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; white-space: nowrap; }
+        .tab-btn { flex: 1; padding: 14px 8px; background: transparent; border: none; font-size: 0.75rem; font-weight: 600; color: #334155; cursor: pointer; white-space: nowrap; } /* improved contrast */
         .tab-btn.active { color: var(--accent); background: white; border-bottom: 2px solid var(--accent); margin-bottom: -2px; }
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
@@ -57,7 +74,8 @@
     <div class="container">
         <div class="app-header">
             <h1>PrivacyVault</h1>
-            <p>Offline AES-256 Encryption</p>
+            <p style="opacity:0.9; margin-bottom:4px;">Military-grade AES-256 Encryption</p>
+            <div class="offline-badge">Data never leaves your device</div>
         </div>
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('text', this)">Text</button>
@@ -67,7 +85,7 @@
 
         <!-- Text Encryption Tab -->
         <div id="tab-text" class="tab-content active">
-            <label>Key <button class="btn-gen" onclick="generatePassword('keyInput')">Generate</button></label>
+            <label>Encryption Key <button class="btn-gen" onclick="generatePassword('keyInput')">Generate</button></label>
             <input type="text" id="keyInput" placeholder="Enter encryption key...">
             <label style="margin-top:12px;">Text</label>
             <textarea id="textInput" placeholder="Type text here..."></textarea>
@@ -76,12 +94,12 @@
                 <button class="btn-dec" onclick="processText(false)">Decrypt</button>
             </div>
             <div class="result-box" id="resultOutput">Result will appear here...</div>
-            <button class="btn-copy" onclick="copyResult()" style="margin-top:8px; width:100%;">Copy</button>
+            <button class="btn-copy" onclick="copyResult()" style="margin-top:12px; width:100%;">Copy</button>
         </div>
 
         <!-- File Encryption Tab -->
         <div id="tab-file" class="tab-content">
-            <label>Key <button class="btn-gen" onclick="generatePassword('fileKey')">Generate</button></label>
+            <label>Encryption Key <button class="btn-gen" onclick="generatePassword('fileKey')">Generate</button></label>
             <input type="text" id="fileKey" placeholder="Enter encryption key...">
             <div class="file-zone" onclick="document.getElementById('fileInput').click()">
                 <p>Tap to select a file</p>
@@ -336,10 +354,8 @@
         const t = document.getElementById('resultOutput').innerText;
         if (!t || t === "Result will appear here...") return;
         
-        // Use modern clipboard API if available in a secure context
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(t).then(() => alert("Copied!")).catch(() => {
-                // Fallback on failure
                 fallbackCopy(t);
             });
         } else {
