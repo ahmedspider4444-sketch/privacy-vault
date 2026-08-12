@@ -297,18 +297,36 @@
                 parts.push(new Uint8Array(dec));
             }
 
-            const blob = new Blob(parts);
             let originalName = selectedFileData.name;
             if (originalName.endsWith(".enc")) originalName = originalName.slice(0, -4);
             else originalName = "decrypted_" + originalName;
 
+            // Determine MIME type based on extension
+            const mimeMap = {
+                '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+                '.gif': 'image/gif', '.bmp': 'image/bmp', '.webp': 'image/webp',
+                '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.webm': 'video/webm',
+                '.mov': 'video/quicktime', '.avi': 'video/x-msvideo', '.m4v': 'video/x-m4v',
+                '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.pdf': 'application/pdf',
+                '.txt': 'text/plain', '.html': 'text/html', '.css': 'text/css',
+                '.js': 'application/javascript', '.json': 'application/json',
+                '.zip': 'application/zip', '.rar': 'application/vnd.rar',
+                '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                '.xls': 'application/vnd.ms-excel', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            };
+            const extension = '.' + originalName.split('.').pop().toLowerCase();
+            const mimeType = mimeMap[extension] || 'application/octet-stream';
+
+            // If it's an image, preview it; otherwise download with proper MIME type
             const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
             if (imageExtensions.some(ext => originalName.toLowerCase().endsWith(ext))) {
-                const url = URL.createObjectURL(blob);
+                const typedBlob = new Blob(parts, { type: mimeType });
+                const url = URL.createObjectURL(typedBlob);
                 window.open(url, '_blank');
                 status.innerText = "Image previewed.";
             } else {
-                downloadBlob(blob, originalName);
+                const typedBlob = new Blob(parts, { type: mimeType });
+                downloadBlob(typedBlob, originalName);
                 status.innerText = "File decrypted.";
             }
         } catch (e) {
