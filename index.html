@@ -4,34 +4,267 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>PrivacyVault - Offline AES-256</title>
-    <!-- إضافة مكتبة StreamSaver للتعامل مع الملفات الكبيرة -->
+    <!-- StreamSaver Library -->
     <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.min.js"></script>
     <style>
         :root {
-            --primary: #0f172a; --accent: #3b82f6; --success: #10b981;
-            --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; --radius: 16px;
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --success: #059669;
+            --success-hover: #047857;
+            --warning: #d97706;
+            --warning-hover: #b45309;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --radius: 18px;
+            --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: #1e293b; min-height: 100vh; padding: 16px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 24px; }
-        .app-header { background: linear-gradient(135deg, var(--primary), #1e293b); color: white; padding: 20px 24px; text-align: center; }
-        .app-header h1 { font-size: 1.4rem; margin-bottom: 4px; }
-        .offline-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; margin-top: 8px; }
-        .tabs { display: flex; background: #e2e8f0; padding: 4px; margin: 16px 20px 0 20px; border-radius: 12px; gap: 4px; }
-        .tab-btn { flex: 1; padding: 10px 8px; background: transparent; border: none; font-size: 0.8rem; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 8px; }
-        .tab-btn.active { color: #0f172a; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 520px; 
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
+            overflow: hidden; 
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .app-header { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            color: white; 
+            padding: 24px 20px; 
+            text-align: center; 
+            position: relative;
+        }
+
+        .app-header h1 { 
+            font-size: 1.5rem; 
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px; 
+        }
+
+        .offline-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 6px; 
+            background: rgba(255, 255, 255, 0.12); 
+            backdrop-filter: blur(8px);
+            color: #cbd5e1; 
+            padding: 5px 14px; 
+            border-radius: 20px; 
+            font-size: 0.72rem; 
+            font-weight: 600; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .offline-badge::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .tabs { 
+            display: flex; 
+            background: #f1f5f9; 
+            padding: 5px; 
+            margin: 18px 18px 0 18px; 
+            border-radius: 14px; 
+            gap: 4px; 
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn { 
+            flex: 1; 
+            padding: 10px 6px; 
+            background: transparent; 
+            border: none; 
+            font-size: 0.82rem; 
+            font-weight: 600; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            border-radius: 10px; 
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active { 
+            color: var(--primary); 
+            background: white; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06); 
+        }
+
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
-        label { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; display: block; }
-        textarea, input[type="text"] { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; background: #fafbfc; }
-        textarea { height: 100px; resize: vertical; }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        label { 
+            font-weight: 600; 
+            font-size: 0.82rem; 
+            color: #334155;
+            margin-bottom: 6px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        textarea, input[type="text"], input[type="password"] { 
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 1.5px solid var(--border); 
+            border-radius: 12px; 
+            font-size: 0.92rem; 
+            background: #f8fafc; 
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        textarea:focus, input[type="text"]:focus, input[type="password"]:focus {
+            border-color: var(--accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea { height: 110px; resize: vertical; font-family: inherit; }
+
+        .toggle-pwd {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 6px;
+        }
+
         .btn-group { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-        button { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; color: white; flex: 1; }
+        
+        button.btn-action { 
+            padding: 12px 16px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 0.88rem;
+            font-weight: 600; 
+            cursor: pointer; 
+            color: white; 
+            flex: 1; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        button.btn-action:active { transform: scale(0.98); }
+
         .btn-enc { background: var(--accent); }
+        .btn-enc:hover { background: var(--accent-hover); }
         .btn-dec { background: var(--success); }
-        .btn-warning { background: var(--warning); color: #1e293b; }
-        .result-box { background: #f1f5f9; border: 2px dashed var(--border); padding: 14px; border-radius: 10px; margin-top: 12px; font-family: monospace; word-break: break-all; }
-        .file-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; background: #fafbfc; }
+        .btn-dec:hover { background: var(--success-hover); }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: var(--warning-hover); }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+        .btn-secondary:hover { background: #cbd5e1; }
+
+        .result-box { 
+            background: #f8fafc; 
+            border: 1.5px dashed var(--border); 
+            padding: 14px; 
+            border-radius: 12px; 
+            margin-top: 14px; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 0.85rem;
+            word-break: break-all; 
+            color: #334155;
+            min-height: 50px;
+            position: relative;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            transition: width 0.2s ease;
+        }
+
+        .file-zone { 
+            border: 2px dashed var(--border); 
+            border-radius: 14px; 
+            padding: 28px 16px; 
+            text-align: center; 
+            cursor: pointer; 
+            background: #f8fafc; 
+            transition: all 0.2s ease;
+        }
+
+        .file-zone:hover {
+            border-color: var(--accent);
+            background: #f0f9ff;
+        }
+
+        .file-zone-icon {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .file-zone p {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -41,6 +274,7 @@
         <h1>PrivacyVault</h1>
         <div class="offline-badge">Data never leaves your device</div>
     </div>
+    
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('text', this)">Text</button>
         <button class="tab-btn" onclick="switchTab('file', this)">Files</button>
@@ -49,51 +283,86 @@
 
     <!-- Text Tab -->
     <div id="tab-text" class="tab-content active">
-        <label>Encryption Key</label>
-        <input type="text" id="keyInput" placeholder="Enter key...">
-        <label style="margin-top:12px;">Text</label>
-        <textarea id="textInput" placeholder="Type here..."></textarea>
-        <div class="btn-group">
-            <button class="btn-enc" onclick="processText(true)">Encrypt</button>
-            <button class="btn-dec" onclick="processText(false)">Decrypt</button>
+        <div class="input-group">
+            <label>Encryption Key</label>
+            <div class="input-wrapper">
+                <input type="password" id="keyInput" placeholder="Enter secret key...">
+                <button type="button" class="toggle-pwd" onclick="togglePassword('keyInput', this)">Show</button>
+            </div>
         </div>
-        <div class="result-box" id="resultOutput">Result...</div>
+
+        <div class="input-group">
+            <label>
+                Text 
+                <span style="font-weight: normal; color: var(--accent); cursor: pointer;" onclick="clearText('textInput')">Clear</span>
+            </label>
+            <textarea id="textInput" placeholder="Type or paste your text here..."></textarea>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-action btn-enc" onclick="processText(true)">Encrypt Text</button>
+            <button class="btn-action btn-dec" onclick="processText(false)">Decrypt Text</button>
+        </div>
+
+        <div class="result-box" id="resultOutput">Result will appear here...</div>
+        <button class="btn-action btn-secondary" onclick="copyToClipboard('resultOutput')" style="margin-top: 8px; width: 100%;">Copy Result</button>
     </div>
 
     <!-- File Tab -->
     <div id="tab-file" class="tab-content">
-        <label>Encryption Key</label>
-        <input type="text" id="fileKey" placeholder="Enter key...">
+        <div class="input-group">
+            <label>Encryption Key</label>
+            <div class="input-wrapper">
+                <input type="password" id="fileKey" placeholder="Enter secret key...">
+                <button type="button" class="toggle-pwd" onclick="togglePassword('fileKey', this)">Show</button>
+            </div>
+        </div>
+
         <div class="file-zone" onclick="document.getElementById('fileInput').click()">
-            <p>Tap to select a file</p>
+            <span class="file-zone-icon">📁</span>
+            <p id="fileZoneText">Tap to select a file</p>
         </div>
         <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(event)">
-        <p id="fileStatus" style="font-size:0.8rem; margin-top:6px; text-align:center;"></p>
+        <p id="fileStatus" style="font-size:0.78rem; color: var(--text-muted); margin-top:6px; text-align:center;"></p>
+
         <div class="btn-group">
-            <button class="btn-enc" onclick="encryptFile()">Encrypt</button>
-            <button class="btn-dec" onclick="decryptFile()">Decrypt</button>
+            <button class="btn-action btn-enc" onclick="encryptFile()">Encrypt File</button>
+            <button class="btn-action btn-dec" onclick="decryptFile()">Decrypt File</button>
         </div>
-        <div class="result-box" id="fileResult">Output...</div>
+
+        <div class="result-box" id="fileResult">
+            <span id="fileResultText">Output status...</span>
+            <div class="progress-bar-container" id="progressBarContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Handshake Tab -->
     <div id="tab-handshake" class="tab-content">
-        <label>Your Public Key</label>
-        <textarea id="myPublicKey" readonly></textarea>
-        <label style="margin-top:8px;">Peer's Public Key</label>
-        <textarea id="peerPublicKey"></textarea>
-        <div class="btn-group">
-            <button class="btn-warning" onclick="generateKeyPair()">Generate</button>
-            <button class="btn-warning" onclick="deriveSharedKey()">Derive</button>
+        <div class="input-group">
+            <label>Your Public Key</label>
+            <textarea id="myPublicKey" readonly placeholder="Click 'Generate' to create a key pair..."></textarea>
+            <button class="btn-action btn-secondary" onclick="copyToClipboard('myPublicKey')" style="margin-top: 6px; width: 100%;">Copy My Key</button>
         </div>
-        <p id="handshakeStatus" style="font-size:0.8rem; margin-top:8px;"></p>
+
+        <div class="input-group" style="margin-top: 14px;">
+            <label>Peer's Public Key</label>
+            <textarea id="peerPublicKey" placeholder="Paste peer's public key here..."></textarea>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-action btn-warning" onclick="generateKeyPair()">Generate</button>
+            <button class="btn-action btn-warning" onclick="deriveSharedKey()">Derive Shared Key</button>
+        </div>
+        <p id="handshakeStatus" style="font-size:0.8rem; color: var(--success); margin-top:8px; text-align: center; font-weight: 600;"></p>
     </div>
 </div>
 
 <script>
     const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
     let selectedFileData = null, localKeyPair = null;
-    const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB per chunk for streaming
+    const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
 
     async function deriveKey(password, salt) {
         const enc = new TextEncoder();
@@ -105,11 +374,40 @@
     function arrayBufferToBase64(buffer) { return btoa(String.fromCharCode(...new Uint8Array(buffer))); }
     function base64ToArrayBuffer(base64) { return Uint8Array.from(atob(base64), c => c.charCodeAt(0)).buffer; }
 
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            btn.innerText = "Hide";
+        } else {
+            input.type = "password";
+            btn.innerText = "Show";
+        }
+    }
+
+    function clearText(elementId) {
+        document.getElementById(elementId).value = "";
+    }
+
+    function copyToClipboard(elementId) {
+        const el = document.getElementById(elementId);
+        const text = el.value || el.innerText;
+        if (!text || text === "Result will appear here..." || text === "Output status...") return;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Copied to clipboard!");
+        }).catch(() => {
+            alert("Failed to copy.");
+        });
+    }
+
     async function processText(isEncrypt) {
         const text = document.getElementById('textInput').value;
         const password = document.getElementById('keyInput').value.trim();
         const out = document.getElementById('resultOutput');
-        if (!password) { alert("Enter a key."); return; }
+        if (!password) { alert("Please enter a secret key."); return; }
+        if (!text) { alert("Please enter text."); return; }
+
         try {
             if (isEncrypt) {
                 const salt = generateRandomSalt();
@@ -125,7 +423,7 @@
                 const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, base64ToArrayBuffer(parts[2]));
                 out.innerText = new TextDecoder().decode(dec);
             }
-        } catch (e) { alert("Failed."); }
+        } catch (e) { alert("Decryption or Encryption failed. Check key/data."); }
     }
 
     function handleFileSelect(e) {
@@ -134,148 +432,129 @@
         if (file.size > MAX_FILE_SIZE) {
             alert("File is too large! Max 500MB allowed.");
             selectedFileData = null;
-            document.getElementById('fileStatus').innerText = "No file selected";
+            document.getElementById('fileZoneText').innerText = "Tap to select a file";
+            document.getElementById('fileStatus').innerText = "";
             return;
         }
         selectedFileData = file;
-        document.getElementById('fileStatus').innerText = file.name + " (" + (file.size/1024/1024).toFixed(2) + " MB)";
+        document.getElementById('fileZoneText').innerText = file.name;
+        document.getElementById('fileStatus').innerText = "(" + (file.size/1024/1024).toFixed(2) + " MB)";
     }
 
-    // ==================== تشفير الملفات عبر التدفق (StreamSaver) ====================
+    function updateProgress(percent, text) {
+        const statusText = document.getElementById('fileResultText');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressBarContainer');
+
+        progressContainer.style.display = 'block';
+        progressBar.style.width = percent + '%';
+        statusText.innerText = `${text} ${percent}%`;
+    }
+
     async function encryptFile() {
         if (!selectedFileData) return alert("Select a file first.");
         const password = document.getElementById('fileKey').value.trim();
-        if (!password) return alert("Enter a key.");
-        const status = document.getElementById('fileResult');
-        status.innerText = "Encrypting... (streaming)";
+        if (!password) return alert("Enter a secret key.");
 
         try {
-            // 1. إنشاء salt والمفتاح
             const salt = generateRandomSalt();
             const key = await deriveKey(password, salt);
 
-            // 2. إنشاء تيار كتابة إلى القرص (التنزيل)
-            const fileStream = streamSaver.createWriteStream(selectedFileData.name + ".enc", {
-                size: null, // غير معروف مسبقًا
-                writableStrategy: undefined,
-                readableStrategy: undefined
-            });
+            const fileStream = streamSaver.createWriteStream(selectedFileData.name + ".enc", { size: null });
             const writer = fileStream.getWriter();
 
-            // كتابة salt (16 بايت) في البداية
             await writer.write(new Uint8Array(salt));
 
-            // 3. قراءة الملف الأصلي كأجزاء وتشفيرها
             let offset = 0;
             while (offset < selectedFileData.size) {
                 const chunk = await selectedFileData.slice(offset, offset + CHUNK_SIZE).arrayBuffer();
                 const iv = crypto.getRandomValues(new Uint8Array(12));
-                const encrypted = await crypto.subtle.encrypt(
-                    { name: "AES-GCM", iv },
-                    key,
-                    chunk
-                );
+                const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, chunk);
                 const encryptedArray = new Uint8Array(encrypted);
 
-                // كتابة حجم الجزء المشفر (4 بايت little-endian)
                 const sizeBuffer = new ArrayBuffer(4);
                 new DataView(sizeBuffer).setUint32(0, encryptedArray.byteLength, true);
                 await writer.write(new Uint8Array(sizeBuffer));
-
-                // كتابة IV (12 بايت)
                 await writer.write(iv);
-
-                // كتابة البيانات المشفرة
                 await writer.write(encryptedArray);
 
                 offset += CHUNK_SIZE;
                 const percent = Math.min(100, ((offset / selectedFileData.size) * 100).toFixed(1));
-                status.innerText = `Encrypting... ${percent}%`;
+                updateProgress(percent, "Encrypting...");
             }
 
             await writer.close();
-            status.innerText = "Encryption complete. Download started.";
+            document.getElementById('fileResultText').innerText = "Encryption complete! Download started.";
         } catch (e) {
             console.error(e);
-            status.innerText = "Encryption failed: " + e.message;
+            document.getElementById('fileResultText').innerText = "Encryption failed: " + e.message;
         }
     }
 
-    // ==================== فك تشفير الملفات عبر التدفق ====================
     async function decryptFile() {
         if (!selectedFileData) return alert("Select a file first.");
         const password = document.getElementById('fileKey').value.trim();
-        if (!password) return alert("Enter a key.");
-        const status = document.getElementById('fileResult');
-        status.innerText = "Decrypting... (streaming)";
+        if (!password) return alert("Enter a secret key.");
 
         try {
-            // 1. قراءة salt (أول 16 بايت)
             const saltBuffer = await selectedFileData.slice(0, 16).arrayBuffer();
             const salt = new Uint8Array(saltBuffer);
             const key = await deriveKey(password, salt);
 
-            // 2. استخراج اسم الملف الأصلي (احذف .enc فقط)
             let originalName = selectedFileData.name;
             if (originalName.endsWith(".enc")) originalName = originalName.slice(0, -4);
 
-            // 3. إنشاء تيار الكتابة للتنزيل
             const fileStream = streamSaver.createWriteStream(originalName, { size: null });
             const writer = fileStream.getWriter();
 
-            let offset = 16; // بعد salt
+            let offset = 16;
             const totalSize = selectedFileData.size;
             while (offset < totalSize) {
-                // قراءة حجم الجزء (4 بايت)
                 const sizeBuffer = await selectedFileData.slice(offset, offset + 4).arrayBuffer();
                 const size = new DataView(sizeBuffer).getUint32(0, true);
                 offset += 4;
 
-                // قراءة IV (12 بايت)
                 const iv = new Uint8Array(await selectedFileData.slice(offset, offset + 12).arrayBuffer());
                 offset += 12;
 
-                // قراءة البيانات المشفرة
                 const encryptedData = await selectedFileData.slice(offset, offset + size).arrayBuffer();
                 offset += size;
 
-                // فك تشفير الجزء
-                const decrypted = await crypto.subtle.decrypt(
-                    { name: "AES-GCM", iv },
-                    key,
-                    encryptedData
-                );
+                const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encryptedData);
                 await writer.write(new Uint8Array(decrypted));
 
                 const percent = Math.min(100, ((offset / totalSize) * 100).toFixed(1));
-                status.innerText = `Decrypting... ${percent}%`;
+                updateProgress(percent, "Decrypting...");
             }
 
             await writer.close();
-            status.innerText = "Decryption complete. Download started.";
+            document.getElementById('fileResultText').innerText = "Decryption complete! Download started.";
         } catch (e) {
             console.error(e);
-            status.innerText = "Decryption failed: " + e.message;
+            document.getElementById('fileResultText').innerText = "Decryption failed: " + e.message;
         }
-    }
-
-    // دوال مساعدة غير مستخدمة الآن لكنها تبقى للتوافق
-    function downloadBlob(blob, name) {
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
     async function generateKeyPair() {
         localKeyPair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey", "deriveBits"]);
         document.getElementById('myPublicKey').value = arrayBufferToBase64(await crypto.subtle.exportKey("spki", localKeyPair.publicKey));
+        document.getElementById('handshakeStatus').innerText = "Key pair generated successfully!";
     }
 
     async function deriveSharedKey() {
-        const peer = await crypto.subtle.importKey("spki", base64ToArrayBuffer(document.getElementById('peerPublicKey').value), { name: "ECDH", namedCurve: "P-256" }, false, []);
-        const secret = await crypto.subtle.deriveBits({ name: "ECDH", public: peer }, localKeyPair.privateKey, 256);
-        const hex = Array.from(new Uint8Array(secret)).map(b => b.toString(16).padStart(2, '0')).join('');
-        document.getElementById('keyInput').value = document.getElementById('fileKey').value = hex;
-        alert("Shared key set!");
+        const peerVal = document.getElementById('peerPublicKey').value.trim();
+        if(!peerVal) return alert("Please enter peer's public key.");
+        if(!localKeyPair) return alert("Please generate your key pair first.");
+
+        try {
+            const peer = await crypto.subtle.importKey("spki", base64ToArrayBuffer(peerVal), { name: "ECDH", namedCurve: "P-256" }, false, []);
+            const secret = await crypto.subtle.deriveBits({ name: "ECDH", public: peer }, localKeyPair.privateKey, 256);
+            const hex = Array.from(new Uint8Array(secret)).map(b => b.toString(16).padStart(2, '0')).join('');
+            document.getElementById('keyInput').value = document.getElementById('fileKey').value = hex;
+            document.getElementById('handshakeStatus').innerText = "Shared key derived and auto-filled!";
+        } catch(e) {
+            alert("Failed to derive shared key. Invalid Public Key.");
+        }
     }
 
     function switchTab(name, btn) {
