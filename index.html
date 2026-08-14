@@ -8,21 +8,25 @@
     <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.min.js"></script>
     <style>
         :root {
-            --primary: #0f172a;
-            --primary-light: #1e293b;
-            --accent: #2563eb;
-            --accent-hover: #1d4ed8;
-            --success: #059669;
-            --success-hover: #047857;
-            --warning: #d97706;
-            --warning-hover: #b45309;
-            --bg: #f1f5f9;
-            --card-bg: #ffffff;
-            --border: #cbd5e1;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --bg: #0b0f19;
+            --card-bg: #111827;
+            --primary: #1e293b;
+            --primary-light: #334155;
+            
+            --accent: #00d8ff;
+            --accent-hover: #00b4d8;
+            
+            --success: #00d8ff;
+            --success-hover: #00b4d8;
+            --warning: #f59e0b;
+            --warning-hover: #d97706;
+            
+            --border: #1f293d;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
             --radius: 18px;
-            --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -46,36 +50,42 @@
             border-radius: var(--radius); 
             box-shadow: var(--shadow); 
             overflow: hidden; 
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            border: 1px solid var(--border);
         }
 
         .app-header { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            background: #111827; 
             color: white; 
             padding: 24px 20px; 
             text-align: center; 
             position: relative;
+            border-bottom: 1px solid var(--border);
         }
 
         .app-header h1 { 
-            font-size: 1.5rem; 
+            font-size: 1.6rem; 
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 6px; 
+            color: #ffffff;
+        }
+
+        .app-header h1 span {
+            color: var(--accent);
         }
 
         .offline-badge { 
             display: inline-flex; 
             align-items: center; 
             gap: 6px; 
-            background: rgba(255, 255, 255, 0.12); 
+            background: rgba(0, 216, 255, 0.08); 
             backdrop-filter: blur(8px);
-            color: #cbd5e1; 
+            color: #94a3b8; 
             padding: 5px 14px; 
             border-radius: 20px; 
             font-size: 0.72rem; 
             font-weight: 600; 
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 216, 255, 0.2);
         }
 
         .offline-badge::before {
@@ -83,14 +93,14 @@
             display: inline-block;
             width: 7px;
             height: 7px;
-            background-color: #10b981;
+            background-color: var(--accent);
             border-radius: 50%;
-            box-shadow: 0 0 8px #10b981;
+            box-shadow: 0 0 8px var(--accent);
         }
 
         .tabs { 
             display: flex; 
-            background: #f1f5f9; 
+            background: #0f172a; 
             padding: 5px; 
             margin: 18px 18px 0 18px; 
             border-radius: 14px; 
@@ -112,9 +122,9 @@
         }
 
         .tab-btn.active { 
-            color: var(--primary); 
-            background: white; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06); 
+            color: #0b0f19; 
+            background: var(--accent); 
+            box-shadow: 0 2px 8px rgba(0, 216, 255, 0.3); 
         }
 
         .tab-content { display: none; padding: 20px; }
@@ -128,7 +138,7 @@
         label { 
             font-weight: 600; 
             font-size: 0.82rem; 
-            color: #334155;
+            color: #cbd5e1;
             margin-bottom: 6px; 
             display: flex;
             justify-content: space-between;
@@ -147,7 +157,7 @@
             border: 1.5px solid var(--border); 
             border-radius: 12px; 
             font-size: 0.92rem; 
-            background: #f8fafc; 
+            background: #0f172a; 
             color: var(--text-main);
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -155,8 +165,7 @@
 
         textarea:focus, input[type="text"]:focus, input[type="password"]:focus {
             border-color: var(--accent);
-            background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 216, 255, 0.15);
         }
 
         textarea { height: 110px; resize: vertical; font-family: inherit; }
@@ -166,7 +175,7 @@
             right: 12px;
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--accent);
             font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
@@ -180,9 +189,8 @@
             border: none; 
             border-radius: 12px; 
             font-size: 0.88rem;
-            font-weight: 600; 
+            font-weight: 700; 
             cursor: pointer; 
-            color: white; 
             flex: 1; 
             display: inline-flex;
             align-items: center;
@@ -193,17 +201,17 @@
 
         button.btn-action:active { transform: scale(0.98); }
 
-        .btn-enc { background: var(--accent); }
+        .btn-enc { background: var(--accent); color: #0b0f19; }
         .btn-enc:hover { background: var(--accent-hover); }
-        .btn-dec { background: var(--success); }
-        .btn-dec:hover { background: var(--success-hover); }
-        .btn-warning { background: var(--warning); color: white; }
+        .btn-dec { background: #1e293b; color: #f8fafc; border: 1px solid var(--border); }
+        .btn-dec:hover { background: #334155; }
+        .btn-warning { background: var(--warning); color: #0b0f19; }
         .btn-warning:hover { background: var(--warning-hover); }
-        .btn-secondary { background: #e2e8f0; color: #334155; }
-        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #334155; }
 
         .result-box { 
-            background: #f8fafc; 
+            background: #0f172a; 
             border: 1.5px dashed var(--border); 
             padding: 14px; 
             border-radius: 12px; 
@@ -211,7 +219,7 @@
             font-family: 'Courier New', Courier, monospace; 
             font-size: 0.85rem;
             word-break: break-all; 
-            color: #334155;
+            color: #cbd5e1;
             min-height: 50px;
             position: relative;
         }
@@ -219,7 +227,7 @@
         .progress-bar-container {
             width: 100%;
             height: 6px;
-            background: #e2e8f0;
+            background: #1e293b;
             border-radius: 10px;
             margin-top: 8px;
             overflow: hidden;
@@ -239,19 +247,19 @@
             padding: 28px 16px; 
             text-align: center; 
             cursor: pointer; 
-            background: #f8fafc; 
+            background: #0f172a; 
             transition: all 0.2s ease;
         }
 
         .file-zone:hover {
             border-color: var(--accent);
-            background: #f0f9ff;
         }
 
         .file-zone-icon {
-            font-size: 1.8rem;
+            font-size: 2rem;
             margin-bottom: 6px;
             display: block;
+            color: var(--accent);
         }
 
         .file-zone p {
@@ -271,7 +279,7 @@
 
 <div class="container">
     <div class="app-header">
-        <h1>PrivacyVault</h1>
+        <h1>Privacy<span>Vault</span></h1>
         <div class="offline-badge">Data never leaves your device</div>
     </div>
     
@@ -319,11 +327,11 @@
         </div>
 
         <div class="file-zone" onclick="document.getElementById('fileInput').click()">
-            <span class="file-zone-icon">📁</span>
-            <p id="fileZoneText">Tap to select a file</p>
+            <span class="file-zone-icon">☁️</span>
+            <p id="fileZoneText">Select or Drop Any File (Images, PDF, Video, Docs)</p>
         </div>
         <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(event)">
-        <p id="fileStatus" style="font-size:0.78rem; color: var(--text-muted); margin-top:6px; text-align:center;"></p>
+        <p id="fileStatus" style="font-size:0.78rem; color: var(--accent); margin-top:6px; text-align:center; font-weight:600;"></p>
 
         <div class="btn-group">
             <button class="btn-action btn-enc" onclick="encryptFile()">Encrypt File</button>
@@ -355,14 +363,14 @@
             <button class="btn-action btn-warning" onclick="generateKeyPair()">Generate</button>
             <button class="btn-action btn-warning" onclick="deriveSharedKey()">Derive Shared Key</button>
         </div>
-        <p id="handshakeStatus" style="font-size:0.8rem; color: var(--success); margin-top:8px; text-align: center; font-weight: 600;"></p>
+        <p id="handshakeStatus" style="font-size:0.8rem; color: var(--accent); margin-top:8px; text-align: center; font-weight: 600;"></p>
     </div>
 </div>
 
 <script>
-    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+    const MAX_FILE_SIZE = 500 * 1024 * 1024;
     let selectedFileData = null, localKeyPair = null;
-    const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
+    const CHUNK_SIZE = 1 * 1024 * 1024;
 
     async function deriveKey(password, salt) {
         const enc = new TextEncoder();
@@ -432,7 +440,7 @@
         if (file.size > MAX_FILE_SIZE) {
             alert("File is too large! Max 500MB allowed.");
             selectedFileData = null;
-            document.getElementById('fileZoneText').innerText = "Tap to select a file";
+            document.getElementById('fileZoneText').innerText = "Select or Drop Any File";
             document.getElementById('fileStatus').innerText = "";
             return;
         }
