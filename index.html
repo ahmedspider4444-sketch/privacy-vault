@@ -294,7 +294,7 @@
         <div class="input-group">
             <label>Encryption Key</label>
             <div class="input-wrapper">
-                <input type="password" id="keyInput" placeholder="Enter secret key...">
+                <input type="password" id="keyInput" placeholder="Enter secret key..." autocomplete="off" autocapitalize="off">
                 <button type="button" class="toggle-pwd" onclick="togglePassword('keyInput', this)">Show</button>
             </div>
         </div>
@@ -321,12 +321,12 @@
         <div class="input-group">
             <label>Encryption Key</label>
             <div class="input-wrapper">
-                <input type="password" id="fileKey" placeholder="Enter secret key...">
+                <input type="password" id="fileKey" placeholder="Enter secret key..." autocomplete="off" autocapitalize="off">
                 <button type="button" class="toggle-pwd" onclick="togglePassword('fileKey', this)">Show</button>
             </div>
         </div>
 
-        <div class="file-zone" onclick="document.getElementById('fileInput').click()">
+        <div class="file-zone" id="fileZone" onclick="document.getElementById('fileInput').click()">
             <span class="file-zone-icon">☁️</span>
             <p id="fileZoneText">Select or Drop Any File (Images, PDF, Video, Docs)</p>
         </div>
@@ -368,7 +368,8 @@
 </div>
 
 <script>
-    const MAX_FILE_SIZE = 500 * 1024 * 1024;
+    // رفع الحد الأقصى إلى 10GB بدلاً من 500MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
     let selectedFileData = null, localKeyPair = null;
     const CHUNK_SIZE = 1 * 1024 * 1024;
 
@@ -397,16 +398,37 @@
         document.getElementById(elementId).value = "";
     }
 
+    // تحسين دالة النسخ مع fallback
     function copyToClipboard(elementId) {
         const el = document.getElementById(elementId);
         const text = el.value || el.innerText;
         if (!text || text === "Result will appear here..." || text === "Output status...") return;
         
-        navigator.clipboard.writeText(text).then(() => {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            }).catch(() => {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
             alert("Copied to clipboard!");
-        }).catch(() => {
+        } catch (e) {
             alert("Failed to copy.");
-        });
+        }
+        document.body.removeChild(textArea);
     }
 
     async function processText(isEncrypt) {
@@ -438,7 +460,7 @@
         const file = e.target.files[0];
         if (!file) return;
         if (file.size > MAX_FILE_SIZE) {
-            alert("File is too large! Max 500MB allowed.");
+            alert("File is too large! Max 10GB allowed.");
             selectedFileData = null;
             document.getElementById('fileZoneText').innerText = "Select or Drop Any File";
             document.getElementById('fileStatus').innerText = "";
@@ -458,6 +480,34 @@
         progressBar.style.width = percent + '%';
         statusText.innerText = `${text} ${percent}%`;
     }
+
+    // دالة لإخفاء شريط التقدم بعد الانتهاء
+    function hideProgress() {
+        document.getElementById('progressBarContainer').style.display = 'none';
+        document.getElementById('progressBar').style.width = '0%';
+    }
+
+    // إضافة دعم السحب والإفلات
+    (function setupDragDrop() {
+        const fileZone = document.getElementById('fileZone');
+        if (!fileZone) return;
+        fileZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileZone.style.borderColor = 'var(--accent)';
+        });
+        fileZone.addEventListener('dragleave', () => {
+            fileZone.style.borderColor = 'var(--border)';
+        });
+        fileZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileZone.style.borderColor = 'var(--border)';
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                // محاكاة حدث اختيار ملف
+                handleFileSelect({ target: { files } });
+            }
+        });
+    })();
 
     async function encryptFile() {
         if (!selectedFileData) return alert("Select a file first.");
@@ -492,9 +542,11 @@
             }
 
             await writer.close();
+            hideProgress();
             document.getElementById('fileResultText').innerText = "Encryption complete! Download started.";
         } catch (e) {
             console.error(e);
+            hideProgress();
             document.getElementById('fileResultText').innerText = "Encryption failed: " + e.message;
         }
     }
@@ -503,6 +555,12 @@
         if (!selectedFileData) return alert("Select a file first.");
         const password = document.getElementById('fileKey').value.trim();
         if (!password) return alert("Enter a secret key.");
+
+        // فحص أولي أن الملف قد يكون مشفرًا بهذه الأداة (أكبر من 20 بايت على الأقل)
+        if (selectedFileData.size < 20) {
+            alert("This file doesn't appear to be encrypted with PrivacyVault.");
+            return;
+        }
 
         try {
             const saltBuffer = await selectedFileData.slice(0, 16).arrayBuffer();
@@ -536,9 +594,11 @@
             }
 
             await writer.close();
+            hideProgress();
             document.getElementById('fileResultText').innerText = "Decryption complete! Download started.";
         } catch (e) {
             console.error(e);
+            hideProgress();
             document.getElementById('fileResultText').innerText = "Decryption failed: " + e.message;
         }
     }
