@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>PrivacyVault - Offline AES-256</title>
-    <!-- StreamSaver Library (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.min.js"></script>
     <style>
         :root {
@@ -365,8 +364,8 @@
 </div>
 
 <script>
-    const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024;
-    const CHUNK_SIZE = 1 * 1024 * 1024;
+    const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024 * 1024; // 1TB
+    const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB per chunk
     let selectedFileData = null, localKeyPair = null;
 
     async function deriveKey(password, salt) {
@@ -495,7 +494,7 @@
         const file = e.target.files[0];
         if (!file) return;
         if (file.size > MAX_FILE_SIZE) {
-            alert("File is too large! Max 10GB allowed.");
+            alert("File is too large! Max 1TB allowed.");
             selectedFileData = null;
             document.getElementById('fileZoneText').innerText = "Select or Drop Any File (Images, PDF, Video, Docs)";
             document.getElementById('fileStatus').innerText = "";
