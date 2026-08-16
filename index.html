@@ -4,13 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>PrivacyVault - Offline AES-256</title>
-    <!-- StreamSaver Library (Local File) -->
-    <script src="./StreamSaver.min.js"></script>
-    <script>
-        if (typeof streamSaver !== 'undefined') {
-            streamSaver.mitm = './mitm.html';
-        }
-    </script>
+    <!-- StreamSaver Library (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.min.js"></script>
     <style>
         :root {
             --bg: #0b0f19;
