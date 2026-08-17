@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>PrivacyVault - Offline AES-256</title>
+    <!-- StreamSaver Library (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.min.js"></script>
     <style>
         :root {
@@ -146,7 +147,7 @@
 
         textarea, input[type="text"], input[type="password"] {
             width: 100%;
-            padding: 12px 14px;
+            padding: 16px 18px;               /* زيادة المساحة الداخلية لحقل كلمة المرور */
             border: 1.5px solid var(--border);
             border-radius: 12px;
             font-size: 0.92rem;
@@ -620,7 +621,7 @@
         if (!peerVal) return alert("Please enter peer's public key.");
         if (!localKeyPair) return alert("Please generate your key pair first.");
         try {
-            const peer = await crypto.subtle.importKey("spki", base64ToArrayBuffer(peerVal), { name: "ECDH", namedCurve: "P-256" }, false, []);
+            const peer = await crypto.subtle.importKey("spki", base64ToArrayBuffer(peerVal.replace(/\s+/g, '')), { name: "ECDH", namedCurve: "P-256" }, false, []);
             const secret = await crypto.subtle.deriveBits({ name: "ECDH", public: peer }, localKeyPair.privateKey, 256);
             const hex = Array.from(new Uint8Array(secret)).map(b => b.toString(16).padStart(2, '0')).join('');
             document.getElementById('keyInput').value = document.getElementById('fileKey').value = hex;
@@ -645,7 +646,7 @@
         hideProgress();
         document.getElementById('keyInput').type = 'password';
         document.getElementById('fileKey').type = 'password';
-        document.querySelectorAll('.toggle-pwd').forEach(btn => btn.innerText = 'Show');
+        document.querySelectorAll('.toggle-pwd').forEach(btn => btn.innerText = 'Show'); // إعادة زر Show
         alert('Session cleared.');
     }
 </script>
